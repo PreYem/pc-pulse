@@ -1,0 +1,9 @@
+[package]
+name = "pcpulse-tui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pcpulse-core = { path = "../pcpulse-core" }
+ratatui = "^0.30"
+crossterm = "^0.29"

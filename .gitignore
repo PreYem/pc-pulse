@@ -1,0 +1,27 @@
+# Plans: keep only tracked project context
+plans/*
+!plans/AGENTS.md
+
+# Rust/Cargo build artifacts
+target/
+**/target/
+CACHEDIR.TAG
+.rustc_info.json
+
+# Secrets/environment files
+.env
+.env.*
+!/.env.example
+
+# OS/editor/VCS artifacts
+Thumbs.db
+.DS_Store
+desktop.ini
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

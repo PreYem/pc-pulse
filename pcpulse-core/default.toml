@@ -1,0 +1,16 @@
+# pcpulse default thresholds
+#
+# Adjust these values after the default file has been written to the user
+# config directory (typically %APPDATA%\pcpulse\config.toml on Windows).
+
+cpu_temp_warn_c = 70.0
+cpu_temp_bad_c = 95.0
+cpu_usage_warn_pct = 75.0
+cpu_usage_bad_pct = 90.0
+ram_used_warn_pct = 70.0
+ram_used_bad_pct = 90.0
+disk_free_warn_gb = 50.0
+disk_free_bad_gb = 20.0
+net_error_warn = 0
+top_processes = 8
+show_per_core = true

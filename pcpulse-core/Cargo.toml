@@ -1,0 +1,11 @@
+[package]
+name = "pcpulse-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sysinfo = "^0.40"
+anyhow = "^1"
+serde = { version = "^1", features = ["derive"] }
+toml = { version = "^1", features = ["serde", "display", "parse"] }
+directories = "^6"
