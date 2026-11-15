@@ -114,3 +114,11 @@ windows_exe_info 0.5.3 (build-dep, Phase 5). LHM web-server fallback is opt-in; 
   `#6-Inno-Setup-Installer`, `#7-CI-Release-Builds` — last four NOT STARTED).
 - 2026-11-15: Finished plans #1-#3 moved to `.opencode/plans/DONE/` (suffixes dropped);
   unfinished #4-#7 stay at `.opencode/plans/`.
+- 2026-11-15: User decisions recorded in plan files: live-collector = 500 ms tick with HOT/COLD
+  probe groups (redesign in plan #4); Linux parity = safe mode (sysinfo only), experimental /sys
+  parsing deferred to new plan #8 after local Linux test (WSL2/VM); Sensor-trait replaced by
+  per-stat probe functions + central registry (plan #4); version single-source from
+  Cargo.toml noted in plan #6. LHM "how to enable" docs question still unanswered.
+- 2026-11-15: New user request → plan #5 section: bundle LibreHardwareMonitor (MPL-2.0) in
+  installer, auto-spawn detached/minimized with web server on 24817 at pcpulse launch, kill
+  on exit; README gets a short LHM section (doc question answered YES).
