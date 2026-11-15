@@ -46,10 +46,10 @@ pcpulse/
   .opencode/
     context.md    this tracked living context file (wired via opencode.json instructions)
     opencode.json project config (tracked)
-    plans/        git-ignored numbered plans (#1.md renamed with word-names + DONE suffix
-                  for finished phases 2026-11-15: #1-Setup-Planning-DONE, #2-Core-TUI-Basics-DONE,
-                  #3-GPU-LHM-Stats, #4-Linux-MacOS-Parity, #5-GUI-Tray-Autostart,
-                  #6-Inno-Setup-Installer, #7-CI-Release-Builds; AGENTS.md moved here 2026-11-11)
+    plans/        git-ignored numbered plans: unfinished at plans/ (#4-Linux-MacOS-Parity,
+                  #5-GUI-Tray-Autostart, #6-Inno-Setup-Installer, #7-CI-Release-Builds);
+                  finished moved to plans/DONE/ (#1-Setup-Planning, #2-Core-TUI-Basics,
+                  #3-GPU-LHM-Stats) 2026-11-15 (AGENTS.md moved here 2026-11-11)
     skills/       project skills copied from Anthropic claude-skills (tracked)
 ```
 
@@ -104,7 +104,13 @@ windows_exe_info 0.5.3 (build-dep, Phase 5). LHM web-server fallback is opt-in; 
   default fns, GPU/LHM merge in `collector.rs`, GPU temp/util checks in `health.rs`, GPU rows in
   `view.rs`. WDK/D3DKMT memory-segment APIs unavailable in enabled modules → DXGI
   `DedicatedVideoMemory` used for total VRAM instead. Strict clippy + release build clean.
+- 2026-11-15: Phase 2 experiments concluded — PDH GPU-Engine: ntdll.dll has NO named `PDH*`
+  exports on this build (ordinal-only) → GPU util LHM fallback; ADLX: `amdadlx64.dll` present in
+  System32 but SDK function names absent from exports (ordinal-only) → temp/power/fan LHM-only.
+  Plan #3 now DONE.
 - 2026-11-15: Plan #1 split per-phase into `.opencode/plans/`; files then renamed with 1–4-word
   names + `DONE` suffix for finished phases (`#1-Setup-Planning-DONE`, `#2-Core-TUI-Basics-DONE`,
   `#3-GPU-LHM-Stats` PARTIAL, `#4-Linux-MacOS-Parity`, `#5-GUI-Tray-Autostart`,
   `#6-Inno-Setup-Installer`, `#7-CI-Release-Builds` — last four NOT STARTED).
+- 2026-11-15: Finished plans #1-#3 moved to `.opencode/plans/DONE/` (suffixes dropped);
+  unfinished #4-#7 stay at `.opencode/plans/`.
