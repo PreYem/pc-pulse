@@ -1,6 +1,5 @@
-# Plans: keep only tracked project context
-plans/*
-!plans/AGENTS.md
+# Plans: working notes under .opencode/plans are ignored; .opencode/context.md is tracked
+.opencode/plans/*
 
 # Rust/Cargo build artifacts
 target/

@@ -14,3 +14,15 @@ disk_free_bad_gb = 20.0
 net_error_warn = 0
 top_processes = 8
 show_per_core = true
+
+gpu_temp_warn_c = 80.0
+gpu_temp_bad_c = 100.0
+gpu_util_warn_pct = 80.0
+gpu_util_bad_pct = 95.0
+
+# LibreHardwareMonitor web server (opt-in). The app only reads an already
+# running server; it never starts one. Suggested port: 24817.
+[lhm]
+enabled = false
+url = "http://127.0.0.1:24817/data.json"
+refresh_ms = 1000

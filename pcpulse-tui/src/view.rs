@@ -182,6 +182,59 @@ fn snapshot_text(snapshot: &Snapshot, report: &HealthReport) -> String {
         }
     }
 
+    match &snapshot.gpu_vendor {
+        Some(vendor) => {
+            let name = match &snapshot.gpu_name {
+                Some(name) => name.to_string(),
+                None => "unknown".to_string(),
+            };
+
+            match snapshot.gpu_vram_total_b {
+                Some(total) => lines.push(format!("GPU - {} / {} / VRAM {}", vendor, name, format_bytes(total))),
+                None => lines.push(format!("GPU - {} / {}", vendor, name)),
+            }
+        },
+        None => lines.push(label_line(snapshot, StatId::GpuVram)),
+    }
+
+    match snapshot.gpu_util_pct {
+        Some(pct) => lines.push(format!("GPU usage - {}%", format_one(pct))),
+        None => lines.push(label_line(snapshot, StatId::GpuUtil)),
+    }
+
+    match snapshot.gpu_temp_c {
+        Some(temp) => lines.push(format!("GPU temp - {} C", format_one(temp))),
+        None => lines.push(label_line(snapshot, StatId::GpuTemp)),
+    }
+
+    if let Some(used) = snapshot.gpu_vram_used_b {
+        if let Some(total) = snapshot.gpu_vram_total_b {
+            let pct = if total > 0_u64 { used as f64 * 100.0 / total as f64 } else { 0.0 };
+            lines.push(format!("GPU VRAM - {} / {} used ({}%)", format_bytes(total), format_bytes(used), format_one(pct)));
+        }
+    }
+
+    if snapshot.gpu_fans.is_empty() {
+        lines.push(label_line(snapshot, StatId::FanSpeed));
+    } else {
+        for fan in &snapshot.gpu_fans {
+            lines.push(format!("Fan {} - {}%", fan.0, format_one(fan.1)));
+        }
+    }
+
+    match snapshot.gpu_power_w {
+        Some(power) => lines.push(format!("Power draw - {} W", format_one(power))),
+        None => lines.push(label_line(snapshot, StatId::PowerDraw)),
+    }
+
+    if snapshot.ssd_smart.is_empty() {
+        lines.push(label_line(snapshot, StatId::SsdSmart));
+    } else {
+        for drive in &snapshot.ssd_smart {
+            lines.push(format!("SSD SMART {} - {}% healthy", drive.0, drive.1));
+        }
+    }
+
     for entry in &snapshot.missing {
         lines.push(format!("Missing: {} - {}", entry.0.label(), entry.1.reason()));
     }

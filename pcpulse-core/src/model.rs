@@ -53,6 +53,7 @@ pub enum MissReason {
     CollectorNotImplemented,
     CollectorError,
     NoData,
+    NeedsLhm,
 }
 
 impl MissReason {
@@ -64,6 +65,7 @@ impl MissReason {
                 MissReason::CollectorNotImplemented => "collector not implemented yet (Phase 2/3)",
                 MissReason::CollectorError => "collector reported an error",
                 MissReason::NoData => "no data available on this machine",
+                MissReason::NeedsLhm => "requires the LibreHardwareMonitor web server (enable in config)",
             }
         ).to_string()
     }
@@ -108,6 +110,16 @@ pub struct Snapshot {
 
     pub top_cpu: Vec<ProcStat>,
     pub top_mem: Vec<ProcStat>,
+
+    pub gpu_vendor: Option<String>,
+    pub gpu_name: Option<String>,
+    pub gpu_vram_total_b: Option<u64>,
+    pub gpu_vram_used_b: Option<u64>,
+    pub gpu_util_pct: Option<f64>,
+    pub gpu_temp_c: Option<f64>,
+    pub gpu_power_w: Option<f64>,
+    pub gpu_fans: Vec<(String, f64)>,
+    pub ssd_smart: Vec<(String, u64)>,
 
     pub missing: Vec<(StatId, MissReason)>,
 }

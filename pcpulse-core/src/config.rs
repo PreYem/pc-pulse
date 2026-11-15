@@ -35,6 +35,42 @@ pub struct Config {
     pub top_processes: u32,
     #[serde(default)]
     pub show_per_core: bool,
+    #[serde(default)]
+    pub gpu_temp_warn_c: f64,
+    #[serde(default)]
+    pub gpu_temp_bad_c: f64,
+    #[serde(default)]
+    pub gpu_util_warn_pct: f64,
+    #[serde(default)]
+    pub gpu_util_bad_pct: f64,
+    #[serde(default = "default_lhm_config")]
+    pub lhm: LhmConfig,
+}
+
+#[derive(serde::Deserialize)]
+pub struct LhmConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_lhm_url")]
+    pub url: String,
+    #[serde(default = "default_lhm_refresh")]
+    pub refresh_ms: u32,
+}
+
+fn default_lhm_url() -> String {
+    "http://127.0.0.1:24817/data.json".to_string()
+}
+
+fn default_lhm_refresh() -> u32 {
+    1000_u32
+}
+
+fn default_lhm_config() -> LhmConfig {
+    LhmConfig {
+        enabled: false,
+        url: default_lhm_url(),
+        refresh_ms: default_lhm_refresh(),
+    }
 }
 
 pub fn default_config() -> Config {
@@ -50,6 +86,15 @@ pub fn default_config() -> Config {
         net_error_warn: 0_u64,
         top_processes: 8_u32,
         show_per_core: true,
+        gpu_temp_warn_c: 80.0,
+        gpu_temp_bad_c: 100.0,
+        gpu_util_warn_pct: 80.0,
+        gpu_util_bad_pct: 95.0,
+        lhm: LhmConfig {
+            enabled: false,
+            url: "http://127.0.0.1:24817/data.json".to_string(),
+            refresh_ms: 1000_u32,
+        },
     }
 }
 

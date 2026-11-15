@@ -5,6 +5,8 @@
 //! GPU/temp/fan/SMART sensors are N/A with reasons until later phases.
 
 pub mod model;
+pub mod gpu;
+pub mod lhm;
 pub mod sensor;
 pub mod collector;
 pub mod health;

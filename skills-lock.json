@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "find-a-skill": {
+      "source": "registry:skillmd/find-a-skill",
+      "digest": "sha256:548b3a322076c15cfba34546015d574f3d054ffa0aa9ea90821222393fe53713",
+      "agents": ["opencode"],
+      "mode": {
+        "opencode": "junction"
+      }
+    },
+    "ratatui": {
+      "source": "registry:florianbruniaux-ccboard/ratatui",
+      "commit_sha": "f5a7d4bb4ddb3fedecceb94a42a6e12b4041e29b",
+      "digest": "sha256:7dad0e05bb207bbfcb5a6d5d26f1f5e44b9be4e366f9925db09052a08bf63476",
+      "agents": ["opencode"],
+      "mode": {
+        "opencode": "junction"
+      }
+    },
+    "run-clippy": {
+      "source": "registry:r3bl-org/run-clippy",
+      "commit_sha": "8598fe0d4648380d049f452a0fa2eb505db1f031",
+      "digest": "sha256:3adf22d550d4fb5e01de3eb42def01a6ed37413ff2724afd186e63cb5ddfd7af",
+      "agents": ["opencode"],
+      "mode": {
+        "opencode": "junction"
+      }
+    },
+    "rust-idioms": {
+      "source": "registry:irahardianto/rust-idioms",
+      "commit_sha": "92ce6b64cdb9ff1ee7e3a50ac1a0bdf31bbd9e78",
+      "digest": "sha256:bdc5cd1662cdd3602594a61fccd41c01c5617df3ccdf87490c0b51f7c1be20da",
+      "agents": ["opencode"],
+      "mode": {
+        "opencode": "junction"
+      }
+    }
+  }
+}

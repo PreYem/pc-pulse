@@ -5,6 +5,8 @@
 //! `missing` so the UI can display an honest reason instead of inventing data.
 
 use crate::config::{Config, default_config};
+use crate::gpu::probe;
+use crate::lhm::{collect as lhm_collect, LhmStats};
 use crate::model::{DiskStat, MissReason, ProcStat, Snapshot, StatId};
 
 use std::cmp::Ordering;
@@ -65,6 +67,16 @@ fn all_missing(reason: MissReason) -> Snapshot {
     }
 
     snapshot
+}
+
+fn lhm_ids() -> [StatId; 5] {
+    [
+        StatId::GpuTemp,
+        StatId::GpuUtil,
+        StatId::PowerDraw,
+        StatId::FanSpeed,
+        StatId::SsdSmart,
+    ]
 }
 
 fn cpu_temp_label_matches(label: String) -> bool {
@@ -294,8 +306,87 @@ pub fn collect_once(config: &Config) -> Snapshot {
         }
     }
 
-    for id in not_implemented_ids() {
-        add_missing(&mut snapshot, id, MissReason::CollectorNotImplemented);
+    let gpu = probe();
+
+    if !gpu.vendor.is_empty() || !gpu.name.is_empty() {
+        snapshot.gpu_vendor = Some(gpu.vendor.to_string());
+        snapshot.gpu_name = Some(gpu.name.to_string());
+
+        if gpu.vram_total_b > 0_u64 {
+            snapshot.gpu_vram_total_b = Some(gpu.vram_total_b);
+        } else {
+            add_missing(&mut snapshot, StatId::GpuVram, MissReason::NoData);
+        }
+    } else {
+        add_missing(&mut snapshot, StatId::GpuVram, MissReason::CollectorError);
+    }
+
+    if config.lhm.enabled {
+        let lhm_result = lhm_collect(config.lhm.url.to_string());
+        let stats: LhmStats = lhm_result.0;
+        let error = lhm_result.1;
+
+        match error {
+            Some(message) => {
+                let _message = message;
+
+                for id in lhm_ids() {
+                    add_missing(&mut snapshot, id, MissReason::CollectorError);
+                }
+            },
+            None => {
+                match stats.gpu_util_pct {
+                    Some(pct) => snapshot.gpu_util_pct = Some(pct),
+                    None => add_missing(&mut snapshot, StatId::GpuUtil, MissReason::NoData),
+                }
+
+                match stats.gpu_temp_c {
+                    Some(temp) => snapshot.gpu_temp_c = Some(temp),
+                    None => add_missing(&mut snapshot, StatId::GpuTemp, MissReason::NoData),
+                }
+
+                match stats.gpu_vram_used_pct {
+                    Some(pct) => {
+                        match snapshot.gpu_vram_total_b {
+                            Some(total) => {
+                                if pct > 0.0 && pct <= 100.0 {
+                                    snapshot.gpu_vram_used_b = Some((total as f64 * pct / 100.0) as u64);
+                                }
+                            },
+                            None => {
+                                add_missing(&mut snapshot, StatId::GpuVram, MissReason::NoData);
+                            },
+                        }
+                    },
+                    None => {
+                        if snapshot.gpu_vram_total_b.is_some() {
+                            add_missing(&mut snapshot, StatId::GpuVram, MissReason::NeedsLhm);
+                        }
+                    },
+                }
+
+                match stats.gpu_power_w {
+                    Some(power) => snapshot.gpu_power_w = Some(power),
+                    None => add_missing(&mut snapshot, StatId::PowerDraw, MissReason::NoData),
+                }
+
+                if stats.fans.is_empty() {
+                    add_missing(&mut snapshot, StatId::FanSpeed, MissReason::NoData);
+                } else {
+                    snapshot.gpu_fans = stats.fans;
+                }
+
+                if stats.smart.is_empty() {
+                    add_missing(&mut snapshot, StatId::SsdSmart, MissReason::NoData);
+                } else {
+                    snapshot.ssd_smart = stats.smart;
+                }
+            },
+        }
+    } else {
+        for id in lhm_ids() {
+            add_missing(&mut snapshot, id, MissReason::NeedsLhm);
+        }
     }
 
     snapshot

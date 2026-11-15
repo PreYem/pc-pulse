@@ -29,7 +29,10 @@ pub fn evaluate(snapshot: &Snapshot, config: &Config) -> HealthReport {
             !snapshot.disks.is_empty() ||
             snapshot.net_recv_b.is_some() ||
             snapshot.net_sent_b.is_some() ||
-            snapshot.net_errors.is_some();
+            snapshot.net_errors.is_some() ||
+            snapshot.gpu_vendor.is_some() ||
+            snapshot.gpu_util_pct.is_some() ||
+            snapshot.gpu_temp_c.is_some();
 
     if !has_data {
         return HealthReport {
@@ -106,6 +109,30 @@ pub fn evaluate(snapshot: &Snapshot, config: &Config) -> HealthReport {
                 level = 1;
             }
             reasons.push("Network interface reported packet errors.".to_string());
+        }
+    }
+
+    if let Some(temp) = snapshot.gpu_temp_c {
+        if temp >= config.gpu_temp_bad_c {
+            level = 2;
+            reasons.push("GPU temperature is critically high.".to_string());
+        } else if temp >= config.gpu_temp_warn_c {
+            if level < 1 {
+                level = 1;
+            }
+            reasons.push("GPU temperature is high.".to_string());
+        }
+    }
+
+    if let Some(util) = snapshot.gpu_util_pct {
+        if util >= config.gpu_util_bad_pct {
+            level = 2;
+            reasons.push("GPU usage is critically high.".to_string());
+        } else if util >= config.gpu_util_warn_pct {
+            if level < 1 {
+                level = 1;
+            }
+            reasons.push("GPU usage is high.".to_string());
         }
     }
 
