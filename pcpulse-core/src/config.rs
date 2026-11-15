@@ -11,7 +11,7 @@ use std::fs::read_to_string;
 use std::fs::write;
 use std::path::PathBuf;
 
-#[derive(serde::Deserialize)]
+#[derive(Clone, serde::Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub cpu_temp_warn_c: f64,
@@ -47,7 +47,7 @@ pub struct Config {
     pub lhm: LhmConfig,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Clone, serde::Deserialize)]
 pub struct LhmConfig {
     #[serde(default)]
     pub enabled: bool,

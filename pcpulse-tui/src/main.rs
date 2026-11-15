@@ -2,9 +2,10 @@
 
 mod view;
 
-use pcpulse_core::collector::{collect_once, collect_snapshot_once};
+use pcpulse_core::collector::collect_snapshot_once;
 use pcpulse_core::config::{Config, default_config, load_config};
 use pcpulse_core::health::evaluate;
+use pcpulse_core::live::start_live;
 
 use ratatui::DefaultTerminal;
 use ratatui::restore;
@@ -23,13 +24,16 @@ fn help_text() {
 }
 
 fn run_app(terminal: &mut DefaultTerminal, config: &Config) -> Result<()> {
+    let mut collector = start_live(config);
+
     loop {
-        let snapshot = collect_once(config);
-        let report = evaluate(&snapshot, config);
+        collector.update();
 
-        terminal.draw(|frame| view::draw(&snapshot, &report, frame))?;
+        let report = evaluate(&collector.snapshot, config);
 
-        if poll(Duration::from_millis(250))? {
+        terminal.draw(|frame| view::draw(&collector.snapshot, &report, frame))?;
+
+        if poll(Duration::from_millis(100))? {
             if let Event::Key(key) = read()? {
                 match key.code {
                     KeyCode::Char('q') => {

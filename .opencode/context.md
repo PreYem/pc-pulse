@@ -3,6 +3,12 @@
 LIVING FILE — update this after every phase/plan step (status, layout, build state, next steps).
 Tracked in git; keep it accurate. Numbered plans are working notes under `.opencode/plans/` and are git-ignored.
 
+## User profile
+
+- The user (me, operating this repo) is very unfamiliar with Rust and with how Rust programs
+  talk to system APIs. When explaining testing steps, commands, behavior, or code, use plain
+  language: say what each command does, what output to expect, and what it proves.
+
 ## Plan-folder rule
 
 - Numbered plans live at `.opencode/plans/#1.md`, `.opencode/plans/#2.md`, … (git-ignored).
@@ -31,8 +37,13 @@ rendered as `N/A — <reason>`; never fake or zero-fill sensor data.
   default), GPU model/config/health/TUI wiring: DONE (clippy clean, release build OK,
   `--snapshot-once` on real hardware reports AMD Radeon RX 7800 XT / 16 GB VRAM; LHM rows render
   as N/A with the `NeedsLhm` reason when disabled).
-- Not started: remaining Windows stats paths (ADLX etc.), Linux/macOS parity,
-  GUI app (`pcpulse-gui` + tray), Inno Setup installer, CI/release pipelines (plans #2+ not written yet).
+- Phase 3 — per-stat probe registry (replaced `Sensor` trait), target-gated `windows` dep, HOT/COLD
+  live collector (500 ms HOT / ~30 s COLD) in `live.rs`, category probe files (`registry.rs`, `cpu.rs`,
+  `ram.rs`, `uptime.rs`, `disk.rs`, `net.rs`, `procs.rs`), `lhm.rs` cfg-gated probe merge: DONE (strict clippy +
+  release build + `--snapshot-once` live test clean on Windows 2026-11-15).
+- Not started: remaining Windows stats paths (ADLX etc.), Linux/macOS parity runtime verification
+  (plan #4 compiles + safe-mode logic in place; CI plan #7 runs the non-Windows targets),
+  GUI app (`pcpulse-gui` + tray), Inno Setup installer, CI/release pipelines (plans #5+ not written yet).
 
 ## Workspace layout
 
@@ -46,19 +57,22 @@ pcpulse/
   .opencode/
     context.md    this tracked living context file (wired via opencode.json instructions)
     opencode.json project config (tracked)
-    plans/        git-ignored numbered plans: unfinished at plans/ (#4-Linux-MacOS-Parity,
-                  #5-GUI-Tray-Autostart, #6-Inno-Setup-Installer, #7-CI-Release-Builds);
+    plans/        git-ignored numbered plans: unfinished at plans/ (#5-GUI-Tray-Autostart,
+                  #6-Inno-Setup-Installer, #7-CI-Release-Builds);
                   finished moved to plans/DONE/ (#1-Setup-Planning, #2-Core-TUI-Basics,
-                  #3-GPU-LHM-Stats) 2026-11-15 (AGENTS.md moved here 2026-11-11)
+                  #3-GPU-LHM-Stats, #4-Linux-MacOS-Parity) 2026-11-15 (AGENTS.md moved here 2026-11-11)
     skills/       project skills copied from Anthropic claude-skills (tracked)
 ```
 
 ## Current build status
 
 - Workspace debug build + strict clippy (`-- -D warnings`) + full release build: OK.
-- `pcpulse-tui --snapshot-once`: GPU identity verified on real hardware (2026-11-15).
-- `windows` crate dependency is unconditional (`#[cfg(windows)]` crate); must be made
-  conditional (target-gated) before Linux/macOS CI builds.
+- `pcpulse-tui --snapshot-once`: GPU identity verified on real hardware (2026-11-15); LIVE mode also
+  tested (HOT/COLD ticks visible on Windows 2026-11-15).
+- `windows` crate dependency is now target-gated (`[target.'cfg(windows)'.dependencies]`); platform
+  code is split with `#[cfg(windows)]`/`#[cfg(not(windows))]` so the same modules compile on
+  Linux/macOS (safe mode only). Non-Windows cfg branches are not exercised locally; CI plan #7
+  type-checks them.
 - `target\release\pcpulse-tui.exe --snapshot-once`: tested, works.
 - Config: `%LOCALAPPDATA%\pcpulse\config.toml` created from `pcpulse-core\default.toml` template.
 
@@ -122,3 +136,16 @@ windows_exe_info 0.5.3 (build-dep, Phase 5). LHM web-server fallback is opt-in; 
 - 2026-11-15: New user request → plan #5 section: bundle LibreHardwareMonitor (MPL-2.0) in
   installer, auto-spawn detached/minimized with web server on 24817 at pcpulse launch, kill
   on exit; README gets a short LHM section (doc question answered YES).
+- 2026-11-15: Plan #4 (Linux/macOS parity + probe registry + HOT/COLD live loop) executed and
+  moved to `.opencode/plans/DONE/`. `windows` dep target-gated; `sensor.rs` left on disk but
+  removed from `lib.rs` (project rule: never delete files without permission). `registry.rs`/`live.rs`
+  use `std::time::Instant` (1.100-style `std::time` — no `steady_clock`/`monotonic` in this toolchain).
+  Strict clippy + release build + `--snapshot-once` clean on Windows 2026-11-15; Linux/macOS non-Windows
+  cfg branches not exercised locally (CI plan #7 type-checks them).
+- 2026-11-15: Live-mode render bug found from user test: HOT/COLD probes were reusing the same
+  `Snapshot`, so `cpu_per_core` and `disks` accumulated across ticks. Fixed by clearing those arrays
+  in `probe_cpu` / `probe_disks` and updating duplicate `missing` reasons via `add_missing`.
+- 2026-11-15: User began a self-guided verification pass of plan #4 (beginner test checklist sent).
+  Cross-target check attempt `cargo check --workspace --target x86_64-unknown-linux-gnu` fails locally:
+  Linux std is NOT installed (`rustup target add` never run), so plan #4's non-Windows branches stay
+  compile-checked-only here; CI plan #7 remains the place that exercises them.

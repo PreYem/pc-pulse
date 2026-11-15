@@ -1,6 +1,6 @@
 # pcpulse
 
-`pcpulse` is a Rust-based whole-PC health monitor. The current phase provides a terminal app for Windows 10 that collects CPU, RAM, swap, uptime, disk, network, and top-process stats, plus a simple health verdict.
+`pcpulse` is a Rust-based whole-PC health monitor. The current phase provides a terminal app for Windows 10 that collects CPU, RAM, swap, uptime, disk, network, and top-process stats, GPU identity via DXGI, and an opt-in LibreHardwareMonitor web-server feed for GPU utilization/temperature/VRAM-used/fan/power/SMART, plus a simple health verdict. The live UI refreshes HOT probes every 500 ms and COLD probes every ~30 s.
 
 Missing or unsupported sensors are shown as `N/A` with a reason. The project does not fake values or zero-fill unavailable data.
 
@@ -8,10 +8,12 @@ Missing or unsupported sensors are shown as `N/A` with a reason. The project doe
 
 - Phase 0: planning and environment checks are done.
 - Phase 1: `pcpulse-core` and `pcpulse-tui` are implemented and compiling.
-- The current release binary `pcpulse-tui.exe` builds and can print a one-time snapshot.
+- Phase 2: GPU identity via DXGI and the opt-in LHM JSON collector are implemented.
+- Phase 3: per-stat probe registry + HOT/COLD live collector are implemented and compiling.
+- The current release binary `pcpulse-tui.exe` builds and can print a one-time snapshot or run the live TUI.
 - Later phases are still planned:
-  - Windows advanced stats: GPU, VRAM, fan, power, SMART, optional LHM collection.
-  - Linux/macOS parity where possible.
+  - Windows advanced stats: ADLX etc.
+  - Linux/macOS parity where possible (safe mode: sysinfo backends only; experimental `/sys` + hwmon + SMART deferred to plan #8).
   - GUI front-end with tray/minimized launch.
   - Windows installer.
   - CI/release artifacts.
@@ -143,9 +145,9 @@ Missing stats are neutral: they are shown as `N/A` with the reason and never cou
 
 ```text
 pcpulse/
-  pcpulse-core/   library: stats model, sysinfo collector, health, config
+  pcpulse-core/   library: stats model, registry/probes, sysinfo collector, health, config
   pcpulse-tui/    terminal binary: snapshot CLI and live TUI
-  plans/          numbered plans; only plans/AGENTS.md is tracked by git
+  .opencode/      project config + tracked context.md; plans/ (git-ignored numbered plans)
   scripts/        dependency and environment helper scripts
 ```
 
@@ -157,12 +159,12 @@ Important committed files:
 - `Cargo.lock`
 - `.gitignore`
 - `README.md`
-- `plans/AGENTS.md`
+- `.opencode/context.md`
 - scripts
 
 Ignored by default:
 - `target/`
-- local working plans except `plans/AGENTS.md`
+- local working plans except `.opencode/context.md`
 - build caches
 - OS/editor artifacts
 - `.env` files if present
@@ -177,13 +179,9 @@ Currently available on Windows 10:
 - disk free/total/used percent
 - network totals
 - top CPU and top memory processes
-- best-effort CPU temp if data is available
+- GPU vendor/name/total VRAM via DXGI
+- best-effort CPU temp if a user-mode data source is available
 
 Currently shown as `N/A` with reasons:
-- GPU temp
-- GPU usage
-- GPU VRAM
-- fan speeds
-- power draw
-- SSD SMART/temperature
+- GPU utilization, GPU temp, fan speeds, power draw, VRAM used, SSD SMART — require the LibreHardwareMonitor web server (`NeedsLhm` when `[lhm] enabled = false`)
 - CPU temp when no user-mode data source is available

@@ -6,6 +6,10 @@
 
 use serde_json::Value;
 
+use crate::config::Config;
+use crate::model::{MissReason, Snapshot, StatId};
+use crate::registry::{add_missing, lhm_ids};
+
 #[derive(Clone, Debug, Default)]
 pub struct LhmStats {
     pub gpu_util_pct: Option<f64>,
@@ -142,4 +146,86 @@ pub fn collect(url: String) -> (LhmStats, Option<String>) {
     }
 
     (stats, None)
+}
+
+#[cfg(windows)]
+pub fn probe_lhm(snapshot: &mut Snapshot, config: &Config) {
+    if !config.lhm.enabled {
+        for id in lhm_ids() {
+            add_missing(snapshot, id, MissReason::NeedsLhm);
+        }
+
+        return;
+    }
+
+    let lhm_result = collect(config.lhm.url.clone());
+    let stats: LhmStats = lhm_result.0;
+    let error = lhm_result.1;
+
+    match error {
+        Some(message) => {
+            let _message = message;
+
+            for id in lhm_ids() {
+                add_missing(snapshot, id, MissReason::CollectorError);
+            }
+        },
+        None => {
+            match stats.gpu_util_pct {
+                Some(pct) => snapshot.gpu_util_pct = Some(pct),
+                None => add_missing(snapshot, StatId::GpuUtil, MissReason::NoData),
+            }
+
+            match stats.gpu_temp_c {
+                Some(temp) => snapshot.gpu_temp_c = Some(temp),
+                None => add_missing(snapshot, StatId::GpuTemp, MissReason::NoData),
+            }
+
+            match stats.gpu_vram_used_pct {
+                Some(pct) => {
+                    match snapshot.gpu_vram_total_b {
+                        Some(total) => {
+                            if pct > 0.0 && pct <= 100.0 {
+                                snapshot.gpu_vram_used_b = Some((total as f64 * pct / 100.0) as u64);
+                            }
+                        },
+                        None => {
+                            add_missing(snapshot, StatId::GpuVram, MissReason::NoData);
+                        },
+                    }
+                },
+                None => {
+                    if snapshot.gpu_vram_total_b.is_some() {
+                        add_missing(snapshot, StatId::GpuVram, MissReason::NeedsLhm);
+                    }
+                },
+            }
+
+            match stats.gpu_power_w {
+                Some(power) => snapshot.gpu_power_w = Some(power),
+                None => add_missing(snapshot, StatId::PowerDraw, MissReason::NoData),
+            }
+
+            if stats.fans.is_empty() {
+                add_missing(snapshot, StatId::FanSpeed, MissReason::NoData);
+            } else {
+                snapshot.gpu_fans = stats.fans;
+            }
+
+            if stats.smart.is_empty() {
+                add_missing(snapshot, StatId::SsdSmart, MissReason::NoData);
+            } else {
+                snapshot.ssd_smart = stats.smart;
+            }
+        },
+    }
+}
+
+#[cfg(not(windows))]
+pub fn probe_lhm(snapshot: &mut Snapshot, config: &Config) {
+    let _config = config;
+
+    for id in lhm_ids() {
+        add_missing(snapshot, id, MissReason::NotSupported);
+    }
 }

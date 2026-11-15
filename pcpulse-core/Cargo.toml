@@ -7,8 +7,10 @@ edition = "2021"
 sysinfo = "^0.40"
 serde_json = "^1"
 ureq = { version = "^3", default-features = false, features = ["rustls", "json"] }
-windows = { version = "^0.62", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common", "Win32_Graphics_Direct3D11"] }
 anyhow = "^1"
 serde = { version = "^1", features = ["derive"] }
 toml = { version = "^1", features = ["serde", "display", "parse"] }
 directories = "^6"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "^0.62", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common", "Win32_Graphics_Direct3D11"] }
